@@ -1,0 +1,7 @@
+{
+  "group": "Ethics",
+  "trigger": "conatus",
+  "maxStorage": "100kb",
+  "deletedRetentionDays": 30,
+  "scan": 100
+}

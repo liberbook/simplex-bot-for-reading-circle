@@ -1,0 +1,73 @@
+# Self-contained test network: local relays, one headless simplex-chat CLI
+# per simulated user (alice, bob, carol), the bot in its production image, and
+# a runner that drives the human participants over the CLI WebSocket API.
+name: conatus-test
+
+include:
+  - compose.servers.yml
+
+services:
+  # ---- the bot: the production image (CLI + bot process in one container) ----
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args: {BUILD_INFO: e2e}
+    environment:
+      BOT_NAME: conatus
+      USE_LOCAL_RELAYS: "1"
+      CONATUS_VERBOSE: "${CONATUS_VERBOSE:-0}"
+    depends_on: [smp, xftp]
+    volumes:
+      - smp-config:/relays/smp:ro
+      - xftp-config:/relays/xftp:ro
+      - ./conatus.test.json:/data/conatus.json:ro
+      - bot-data:/data
+
+  # ---- simulated users --------------------------------------------------------
+  alice-cli:
+    build: ./cli
+    environment: {DISPLAY_NAME: alice, USE_LOCAL_RELAYS: "1"}
+    depends_on: [smp, xftp]
+    volumes: [smp-config:/relays/smp:ro, xftp-config:/relays/xftp:ro, alice-data:/data]
+
+  bob-cli:
+    build: ./cli
+    environment: {DISPLAY_NAME: bob, USE_LOCAL_RELAYS: "1"}
+    depends_on: [smp, xftp]
+    volumes: [smp-config:/relays/smp:ro, xftp-config:/relays/xftp:ro, bob-data:/data]
+
+  carol-cli:
+    build: ./cli
+    environment: {DISPLAY_NAME: carol, USE_LOCAL_RELAYS: "1"}
+    depends_on: [smp, xftp]
+    volumes: [smp-config:/relays/smp:ro, xftp-config:/relays/xftp:ro, carol-data:/data]
+
+  # ---- the test scenario ------------------------------------------------------
+  runner:
+    build: {context: .., dockerfile: docker/node.Dockerfile}
+    command: ["node", "test/e2e/runner.js"]
+    environment:
+      BOT_NAME: conatus
+      GROUP: Ethics
+      BOT_ADDRESS_FILE: /data/bot/state/address.txt
+      BOT_FILES: /data/bot/files
+      BOT_DELETED: /data/bot/deleted
+      BOT_POLLS: /data/bot/state/polls.json
+      ALICE_WS: ws://alice-cli:5225
+      BOB_WS: ws://bob-cli:5225
+      CAROL_WS: ws://carol-cli:5225
+      ALICE_FILES: /data/alice/files   # runner view of alice's files folder
+      CLI_FILES: /data/files           # the same folder as the CLIs see it
+      BOB_FILES: /data/bob/files
+    depends_on: [bot, alice-cli, bob-cli, carol-cli]
+    volumes:
+      - bot-data:/data/bot:ro
+      - alice-data:/data/alice
+      - bob-data:/data/bob:ro
+
+volumes:
+  bot-data:
+  alice-data:
+  bob-data:
+  carol-data:

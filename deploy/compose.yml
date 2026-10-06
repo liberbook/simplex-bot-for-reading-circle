@@ -1,0 +1,25 @@
+# The bot as one container (SimpleX CLI + bot process) on the real SimpleX
+# network. Everything it owns is in ./data: conatus.json (settings), db/,
+# files/ (the archive), deleted/, state/, tmp/. See README.md.
+name: conatus
+
+services:
+  conatus:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SIMPLEX_VERSION: ${SIMPLEX_VERSION:-7.0.2}
+        SIMPLEX_SHA256: ${SIMPLEX_SHA256-895fb14cfaa662d1c0947f2f871141fc89680fe3e70bff64c366cbe9e59aa4f0}
+        BUILD_INFO: ${BUILD_INFO:-dev}
+    environment:
+      BOT_NAME: ${BOT_NAME:-conatus}
+      SERVER_ARGS: ${SERVER_ARGS:-}
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "100k"
+        max-file: "3"

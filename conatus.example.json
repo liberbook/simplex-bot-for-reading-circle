@@ -1,0 +1,9 @@
+{
+  "group": "Ethics",
+  "groupLinks": [],
+  "trigger": "conatus",
+  "language": "en",
+  "maxStorage": "20gb",
+  "deletedRetentionDays": 30,
+  "scan": 100
+}

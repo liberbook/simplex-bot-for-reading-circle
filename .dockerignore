@@ -1,0 +1,9 @@
+.git
+node_modules
+deploy/data
+files
+deleted
+state
+db
+tmp
+*.md

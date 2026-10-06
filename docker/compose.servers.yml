@@ -1,0 +1,41 @@
+# Local SimpleX relays (SMP for messages, XFTP for files). Included by
+# compose.yml; can also be started alone to run the bot/tests on the host
+# against throwaway relays. Ports are bound to loopback only.
+
+services:
+  smp:
+    image: simplexchat/smp-server:latest
+    environment:
+      ADDR: smp.test
+      WEB_MANUAL: "1"
+    volumes:
+      - smp-config:/etc/opt/simplex
+      - smp-state:/var/opt/simplex
+    networks:
+      default:
+        aliases: [smp.test]
+    ports:
+      - "127.0.0.1:15223:5223"
+
+  xftp:
+    image: simplexchat/xftp-server:latest
+    environment:
+      ADDR: xftp.test
+      QUOTA: 1gb
+      PASS: ""
+    volumes:
+      - xftp-config:/etc/opt/simplex-xftp
+      - xftp-state:/var/opt/simplex-xftp
+      - xftp-files:/srv/xftp
+    networks:
+      default:
+        aliases: [xftp.test]
+    ports:
+      - "127.0.0.1:10443:443"
+
+volumes:
+  smp-config:
+  smp-state:
+  xftp-config:
+  xftp-state:
+  xftp-files:

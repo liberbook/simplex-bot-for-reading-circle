@@ -1,0 +1,11 @@
+node_modules/
+files/
+deleted/
+state/
+db/
+tmp/
+deploy/data/
+docker/cli/bin/*
+!docker/cli/bin/.gitkeep
+conatus.json
+CLAUDE.md
